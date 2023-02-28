@@ -107,6 +107,7 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<Vec<VDFAppNode>> {
             result = Ok((&input2[1..], children));
             break;
         } else if let Ok((input, node)) = parse_vdf_app_node(input2) {
+            //TODO: hashmap.push
             children.push(node);
             input2 = input;
         } else {
@@ -117,6 +118,7 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<Vec<VDFAppNode>> {
     result
 }
 
+//TODO: change returns
 fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, kind) = parse_take_n(input, 1)?;
 
@@ -128,6 +130,7 @@ fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFAppNode> {
     }
 }
 
+//TODO: change returns
 fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, children) = parse_vdf_app_nodes(input)?;
@@ -140,6 +143,7 @@ fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFAppNode> {
     ))
 }
 
+//TODO: change returns
 fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_vdf_str(input)?;
@@ -151,7 +155,7 @@ fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFAppNode> {
         },
     ))
 }
-
+//TODO: change returns
 fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_u32le(input)?;
