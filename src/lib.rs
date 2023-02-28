@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::Read;
 use std::env;
 use std::io;
-use vdf::VDF;
+pub use vdf::VDF;
 use vdf::printer::print;
 use vdf::reader::read;
 use vdf::updater::update;
