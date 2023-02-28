@@ -5,19 +5,19 @@ pub mod reader;
 pub mod updater;
 pub mod writer;
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct VDF {
     pub header: VDFHeader,
     pub sections: Vec<VDFAppSection>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct VDFHeader {
     pub magic: u32,
     pub version: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct VDFAppSection {
     pub app_id: u32,
     pub data_size: u32,
@@ -30,7 +30,7 @@ pub struct VDFAppSection {
     pub nodes: Vec<VDFAppNode>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub enum VDFAppNode {
     Simple {
         name: CString,
