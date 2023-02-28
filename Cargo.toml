@@ -1,5 +1,5 @@
 [package]
-name = "appinfo-vdf"
+name = "vdf"
 version = "0.1.0"
 authors = ["Pedro Rodrigues"]
 edition = "2018"
