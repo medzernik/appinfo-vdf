@@ -7,31 +7,31 @@ pub mod writer;
 
 #[derive(Debug)]
 pub struct VDF {
-    header: VDFHeader,
-    sections: Vec<VDFAppSection>,
+    pub header: VDFHeader,
+    pub sections: Vec<VDFAppSection>,
 }
 
 #[derive(Clone, Debug)]
-struct VDFHeader {
-    magic: u32,
-    version: u32,
+pub struct VDFHeader {
+    pub magic: u32,
+    pub version: u32,
 }
 
 #[derive(Clone, Debug)]
-struct VDFAppSection {
-    app_id: u32,
-    data_size: u32,
-    info_state: u32,
-    last_updated: u32,
-    pics_token: u64,
-    sha1: [u8; 20],
-    change_number: u32,
-    binary_hash: [u8; 20],
-    nodes: Vec<VDFAppNode>,
+pub struct VDFAppSection {
+    pub app_id: u32,
+    pub data_size: u32,
+    pub info_state: u32,
+    pub last_updated: u32,
+    pub pics_token: u64,
+    pub sha1: [u8; 20],
+    pub change_number: u32,
+    pub binary_hash: [u8; 20],
+    pub nodes: Vec<VDFAppNode>,
 }
 
 #[derive(Clone, Debug)]
-enum VDFAppNode {
+pub enum VDFAppNode {
     Simple {
         name: CString,
         children: Vec<VDFAppNode>,
@@ -46,7 +46,7 @@ enum VDFAppNode {
     },
 }
 
-enum VDFAppNodeKind {
+pub enum VDFAppNodeKind {
     Simple = 0,
     Str = 1,
     Int = 2,
