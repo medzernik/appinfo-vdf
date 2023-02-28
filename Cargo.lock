@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "steamy_vdf"
+name = "appinfo-vdf"
 version = "0.1.0"
