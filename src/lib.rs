@@ -1,15 +1,15 @@
 pub mod vdf;
 
-use std::fs::File;
-use std::io::Read;
 use std::env;
+use std::fs::File;
 use std::io;
-pub use vdf::VDF;
+use std::io::Read;
 use vdf::printer::print;
 use vdf::printer::print_output;
 use vdf::reader::read;
 use vdf::updater::update;
 use vdf::writer::write;
+pub use vdf::VDF;
 
 // fn main() -> io::Result<()> {
 //     let args: Vec<String> = env::args().collect();

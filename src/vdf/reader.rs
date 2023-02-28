@@ -1,7 +1,7 @@
+use super::{VDFAppNode, VDFAppNodeKind, VDFAppSection, VDFHeader, VDF};
+use std::convert::TryInto;
 use std::ffi::CString;
 use std::io;
-use std::convert::TryInto;
-use super::{VDF, VDFAppNode, VDFAppNodeKind, VDFAppSection, VDFHeader};
 
 const MAGIC: u32 = 0x07564427;
 const MAGIC_2023: u32 = 0x07564428;
@@ -21,20 +21,31 @@ impl From<ParseError<'_>> for io::Error {
     }
 }
 
-type ParseResult <'a, 'b, T> = Result<(&'a [u8], T), ParseError<'b>>;
+type ParseResult<'a, 'b, T> = Result<(&'a [u8], T), ParseError<'b>>;
 
 pub fn read(input: &[u8]) -> ParseResult<VDF> {
     let (input, header) = parse_vdf_header(input)?;
     let (input, sections) = parse_vdf_app_sections(input)?;
-    Ok((input, VDF { header: header, sections: sections }))
+    Ok((
+        input,
+        VDF {
+            header: header,
+            sections: sections,
+        },
+    ))
 }
 
 fn parse_vdf_header(input: &[u8]) -> ParseResult<VDFHeader> {
     let (input, magic) = parse_magic(input, MAGIC).unwrap_or(parse_magic(input, MAGIC_2023)?);
     let (input, version) = parse_u32le(input)?;
-    Ok((input, VDFHeader { magic: magic, version: version }))
+    Ok((
+        input,
+        VDFHeader {
+            magic: magic,
+            version: version,
+        },
+    ))
 }
-
 
 fn parse_vdf_app_sections(input: &[u8]) -> ParseResult<Vec<VDFAppSection>> {
     let mut sections = Vec::new();
@@ -44,9 +55,8 @@ fn parse_vdf_app_sections(input: &[u8]) -> ParseResult<Vec<VDFAppSection>> {
     loop {
         if matches_bytes(input2, &[0, 0, 0, 0]) {
             result = Ok((input2, sections));
-            break
-        }
-        else if let Ok((input, section)) = parse_vdf_app_section(input2)  {
+            break;
+        } else if let Ok((input, section)) = parse_vdf_app_section(input2) {
             sections.push(section);
             input2 = input;
         } else {
@@ -60,7 +70,9 @@ fn parse_vdf_app_sections(input: &[u8]) -> ParseResult<Vec<VDFAppSection>> {
 fn parse_vdf_app_section(input: &[u8]) -> ParseResult<VDFAppSection> {
     let (input, app_id) = parse_u32le(input)?;
     let (input, data_size) = parse_u32le(input)?;
-    let data_size2 = data_size.try_into().map_err(|_| "Couldn't convert to usize")?;
+    let data_size2 = data_size
+        .try_into()
+        .map_err(|_| "Couldn't convert to usize")?;
     let (input, data) = parse_take_n(input, data_size2)?;
     let (data, info_state) = parse_u32le(data)?;
     let (data, last_updated) = parse_u32le(data)?;
@@ -69,17 +81,20 @@ fn parse_vdf_app_section(input: &[u8]) -> ParseResult<VDFAppSection> {
     let (data, change_number) = parse_u32le(data)?;
     let (data, binary_hash) = parse_take_n(data, 20)?;
     let (_data, nodes) = parse_vdf_app_nodes(data)?;
-    Ok((input, VDFAppSection {
-        app_id: app_id,
-        data_size: data_size,
-        info_state: info_state,
-        last_updated: last_updated,
-        pics_token: pics_token,
-        sha1: sha1.try_into().unwrap(),
-        change_number: change_number,
-        binary_hash: binary_hash.try_into().unwrap(),
-        nodes: nodes
-    }))
+    Ok((
+        input,
+        VDFAppSection {
+            app_id: app_id,
+            data_size: data_size,
+            info_state: info_state,
+            last_updated: last_updated,
+            pics_token: pics_token,
+            sha1: sha1.try_into().unwrap(),
+            change_number: change_number,
+            binary_hash: binary_hash.try_into().unwrap(),
+            nodes: nodes,
+        },
+    ))
 }
 
 fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<Vec<VDFAppNode>> {
@@ -91,7 +106,7 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<Vec<VDFAppNode>> {
         if matches_bytes(input2, &[VDFAppNodeKind::End as u8]) {
             result = Ok((&input2[1..], children));
             break;
-        } else if let Ok((input, node)) = parse_vdf_app_node(input2)  {
+        } else if let Ok((input, node)) = parse_vdf_app_node(input2) {
             children.push(node);
             input2 = input;
         } else {
@@ -109,35 +124,44 @@ fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFAppNode> {
         k if k == VDFAppNodeKind::Simple as u8 => parse_vdf_app_node_simple(input),
         k if k == VDFAppNodeKind::Str as u8 => parse_vdf_app_node_str(input),
         k if k == VDFAppNodeKind::Int as u8 => parse_vdf_app_node_int(input),
-        _ => Err(ParseError("Unrecognized VDF app node kind"))
+        _ => Err(ParseError("Unrecognized VDF app node kind")),
     }
 }
 
 fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, children) = parse_vdf_app_nodes(input)?;
-    Ok((input, VDFAppNode::Simple {
-        name: name,
-        children: children,
-    }))
+    Ok((
+        input,
+        VDFAppNode::Simple {
+            name: name,
+            children: children,
+        },
+    ))
 }
 
 fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_vdf_str(input)?;
-    Ok((input, VDFAppNode::Str {
-        name: name,
-        value: value,
-    }))
+    Ok((
+        input,
+        VDFAppNode::Str {
+            name: name,
+            value: value,
+        },
+    ))
 }
 
 fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_u32le(input)?;
-    Ok((input, VDFAppNode::Int {
-        name: name,
-        value: value,
-    }))
+    Ok((
+        input,
+        VDFAppNode::Int {
+            name: name,
+            value: value,
+        },
+    ))
 }
 
 fn parse_vdf_str(input: &[u8]) -> ParseResult<CString> {
@@ -163,7 +187,7 @@ fn parse_u32le(input: &[u8]) -> ParseResult<u32> {
     let (input, int_bytes) = parse_take_n(input, size).map_err(|_| err_msg)?;
     match int_bytes.try_into() {
         Ok(bytes) => Ok((input, u32::from_le_bytes(bytes))),
-        Err(_) => Err(ParseError(err_msg))
+        Err(_) => Err(ParseError(err_msg)),
     }
 }
 
@@ -173,7 +197,7 @@ fn parse_u64le(input: &[u8]) -> ParseResult<u64> {
     let (input, int_bytes) = parse_take_n(input, size).map_err(|_| err_msg)?;
     match int_bytes.try_into() {
         Ok(bytes) => Ok((input, u64::from_le_bytes(bytes))),
-        Err(_) => Err(ParseError(err_msg))
+        Err(_) => Err(ParseError(err_msg)),
     }
 }
 
