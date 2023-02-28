@@ -6,6 +6,7 @@ use std::env;
 use std::io;
 pub use vdf::VDF;
 use vdf::printer::print;
+use vdf::printer::print_output;
 use vdf::reader::read;
 use vdf::updater::update;
 use vdf::writer::write;
@@ -61,7 +62,7 @@ pub fn write_file(path: &str, vdf: &VDF) -> io::Result<()> {
     Ok(())
 }
 
-pub fn print_file(path: &str){
+pub fn print_file(path: &str) -> String {
     let vdf = read_file(path).unwrap();
-    print(&vdf)
+    print_output(&vdf)
 }
