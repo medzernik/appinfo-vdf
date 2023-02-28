@@ -52,21 +52,20 @@ fn print_app_node(node: &VDFAppNode, level: usize) {
 //OUTPUT SECTION
 pub fn print_output(vdf: &VDF) -> String {
     let mut output_string = String::new();
-
     // println!("# VDFHeader");
-    output_string.push_str("# VDFHeader");
+
+    output_string.push_str(format!("# VDFHeader\n").as_str());
 
     // println!("magic: {}", vdf.header.magic);
-
-    output_string.push_str(format!("magic: {}", vdf.header.magic).as_str());
+    output_string.push_str(format!("magic: {}\n", vdf.header.magic).as_str());
 
     // println!("version: {}\n", vdf.header.version);
-    output_string.push_str(format!("version: {}\n", vdf.header.version).as_str());
+    output_string.push_str(format!("version: {}\n\n", vdf.header.version).as_str());
 
     for section in &vdf.sections {
         output_string.push_str(print_app_section_output(&section).as_str());
         // println!("\n");
-        output_string.push_str("\n");
+        output_string.push_str(format!("\n\n").as_str());
     }
     output_string
 }
@@ -74,13 +73,13 @@ pub fn print_output(vdf: &VDF) -> String {
 fn print_app_nodes_output(nodes: &[VDFAppNode], level: usize) -> String {
     let mut output_string = String::new();
     // println!("{{");
-    output_string.push_str(format!("{{").as_str());
+    output_string.push_str(format!("{{\n").as_str());
 
     for (i, node) in nodes.iter().enumerate() {
         output_string.push_str(print_app_node_output(node, level + 1).as_str());
         let sep = if i == nodes.len() - 1 { "" } else { "," };
         // println!("{}", sep);
-        output_string.push_str(format!("{}", sep).as_str());
+        output_string.push_str(format!("{}\n", sep).as_str());
     }
     // print!("{:width$}}}", "", width = level * 2);
     output_string.push_str(format!("{:width$}}}", "", width = level * 2).as_str());
@@ -95,25 +94,25 @@ fn print_app_section_output(section: &VDFAppSection) -> String {
     output_string.push_str("# VDFAppSection");
 
     // println!("app_id: {}", section.app_id);
-    output_string.push_str(format!("app_id: {}", section.app_id).as_str());
+    output_string.push_str(format!("app_id: {}\n", section.app_id).as_str());
 
     // println!("data_size: {}", section.data_size);
-    output_string.push_str(format!("data_size: {}", section.data_size).as_str());
+    output_string.push_str(format!("data_size: {}\n", section.data_size).as_str());
 
     // println!("info_state: {}", section.info_state);
-    output_string.push_str(format!("data_size: {}", section.data_size).as_str());
+    output_string.push_str(format!("data_size: {}\n", section.data_size).as_str());
 
     // println!("last_updated: {}", section.last_updated);
-    output_string.push_str(format!("last_updated: {}", section.last_updated).as_str());
+    output_string.push_str(format!("last_updated: {}\n", section.last_updated).as_str());
 
     // println!("pics_token: {}", section.pics_token);
-    output_string.push_str(format!("pics_token: {}", section.pics_token).as_str());
+    output_string.push_str(format!("pics_token: {}\n", section.pics_token).as_str());
 
     // println!("sha1: {:?}", section.sha1);
-    output_string.push_str(format!("sha1: {:?}", section.sha1).as_str());
+    output_string.push_str(format!("sha1: {:?}\n", section.sha1).as_str());
 
     // println!("change_number: {}", section.change_number);
-    output_string.push_str(format!("change_number: {}", section.change_number).as_str());
+    output_string.push_str(format!("change_number: {}\n", section.change_number).as_str());
 
     output_string.push_str(print_app_nodes_output(&section.nodes, 0).as_str());
 
