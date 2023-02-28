@@ -60,3 +60,8 @@ pub fn write_file(path: &str, vdf: &VDF) -> io::Result<()> {
     write(&mut file, &vdf)?;
     Ok(())
 }
+
+pub fn print_file(path: &str){
+    let vdf = read_file(path).unwrap();
+    print(&vdf)
+}
