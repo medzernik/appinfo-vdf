@@ -134,7 +134,7 @@ fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFAppNode> {
     Ok((
         input,
         VDFAppNode::Simple {
-            name: name,
+            name: name.to_str().unwrap().to_string(),
             children: children,
         },
     ))
@@ -146,8 +146,8 @@ fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFAppNode> {
     Ok((
         input,
         VDFAppNode::Str {
-            name: name,
-            value: value,
+            name: name.to_str().unwrap().to_string(),
+            value: value.to_str().unwrap().to_string(),
         },
     ))
 }
@@ -158,7 +158,7 @@ fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<VDFAppNode> {
     Ok((
         input,
         VDFAppNode::Int {
-            name: name,
+            name: name.to_str().unwrap().to_string(),
             value: value,
         },
     ))

@@ -50,19 +50,19 @@ fn update_app_node(node: &VDFAppNode) -> VDFAppNode {
 
 fn steam_edit_app_node() -> VDFAppNode {
     VDFAppNode::Simple {
-        name: CString::new("steam_edit").unwrap(),
+        name: "steam_edit".to_string(),
         children: vec![
             VDFAppNode::Int {
-                name: CString::new("is_hidden").unwrap(),
+                name: "is_hidden".to_string(),
                 value: 1,
             },
             VDFAppNode::Str {
-                name: CString::new("base_name").unwrap(),
-                value: CString::new("Assassin's Creed 2 - Mac").unwrap(),
+                name: "base_name".to_string(),
+                value: "Assassin's Creed 2 - Mac".to_string(),
             },
             VDFAppNode::Str {
-                name: CString::new("base_type").unwrap(),
-                value: CString::new("DLC").unwrap(),
+                name: "base_type".to_string(),
+                value: "DLC".to_string(),
             },
         ],
     }

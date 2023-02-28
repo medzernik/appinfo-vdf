@@ -1,4 +1,4 @@
-use std::ffi::CString;
+// use std::ffi::CString;
 
 pub mod printer;
 pub mod reader;
@@ -33,15 +33,15 @@ pub struct VDFAppSection {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub enum VDFAppNode {
     Simple {
-        name: CString,
+        name: String,
         children: Vec<VDFAppNode>,
     },
     Str {
-        name: CString,
-        value: CString,
+        name: String,
+        value: String,
     },
     Int {
-        name: CString,
+        name: String,
         value: u32,
     },
 }

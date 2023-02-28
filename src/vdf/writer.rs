@@ -79,7 +79,9 @@ where
 {
     stream.write(&[VDFAppNodeKind::Simple as u8])?;
     if let VDFAppNode::Simple { name, children } = node {
-        write_vdf_str(stream, name)?;
+        unsafe{
+        write_vdf_str(stream, &CStr::from_ptr(name.as_ptr() as *const i8))?;
+        }
         write_vdf_app_nodes(stream, children)?;
     }
     Ok(())
@@ -91,8 +93,10 @@ where
 {
     stream.write(&[VDFAppNodeKind::Str as u8])?;
     if let VDFAppNode::Str { name, value } = node {
-        write_vdf_str(stream, name)?;
-        write_vdf_str(stream, value)?;
+        unsafe{
+        write_vdf_str(stream, &CStr::from_ptr(name.as_ptr() as *const i8))?;
+        write_vdf_str(stream, &CStr::from_ptr(value.as_ptr() as *const i8))?;
+        }
     }
     Ok(())
 }
@@ -103,7 +107,9 @@ where
 {
     stream.write(&[VDFAppNodeKind::Int as u8])?;
     if let VDFAppNode::Int { name, value } = node {
-        write_vdf_str(stream, name)?;
+        unsafe{
+        write_vdf_str(stream, &CStr::from_ptr(name.as_ptr() as *const i8))?;
+        }
         stream.write(&value.to_le_bytes())?;
     }
     Ok(())
