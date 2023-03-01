@@ -111,6 +111,7 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<VDFAppNode> {
         } else if let Ok((input, node)) = parse_vdf_app_node(input2) {
             //TODO: hashmap.push
             children.insert(node.0, node.1);
+            
             input2 = input;
         } else {
             break;
