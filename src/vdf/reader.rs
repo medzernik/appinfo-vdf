@@ -1,7 +1,9 @@
-use super::{VDFAppNode, VDFAppNodeKind, VDFAppSection, VDFHeader, VDF};
+use super::{VDFAppNode, VDFAppNodeKind, VDFAppSection, VDFHeader, VDF, VDFValue};
+use std::collections::HashMap;
 use std::convert::TryInto;
 use std::ffi::CString;
-use std::io;
+use std::io::{self, Read};
+use std::str::FromStr;
 
 const MAGIC: u32 = 0x07564427;
 const MAGIC_2023: u32 = 0x07564428;
@@ -92,14 +94,14 @@ fn parse_vdf_app_section(input: &[u8]) -> ParseResult<VDFAppSection> {
             sha1: sha1.try_into().unwrap(),
             change_number: change_number,
             binary_hash: binary_hash.try_into().unwrap(),
-            nodes: nodes,
+            nodes: vec![nodes],
         },
     ))
 }
 
-fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<Vec<VDFAppNode>> {
+fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<VDFAppNode> {
     let mut input2 = input;
-    let mut children = Vec::new();
+    let mut children: VDFAppNode = HashMap::new();
     let mut result = Err(ParseError("Couldn't parse VDF app nodes"));
 
     loop {
@@ -108,7 +110,8 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<Vec<VDFAppNode>> {
             break;
         } else if let Ok((input, node)) = parse_vdf_app_node(input2) {
             //TODO: hashmap.push
-            children.push(node);
+
+            children.insert(String::from_utf8(input.to_vec()).unwrap(), node);
             input2 = input;
         } else {
             break;
@@ -119,52 +122,48 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<Vec<VDFAppNode>> {
 }
 
 //TODO: change returns
-fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFAppNode> {
+fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFValue> {
     let (input, kind) = parse_take_n(input, 1)?;
 
     match kind[0] {
-        k if k == VDFAppNodeKind::Simple as u8 => parse_vdf_app_node_simple(input),
-        k if k == VDFAppNodeKind::Str as u8 => parse_vdf_app_node_str(input),
-        k if k == VDFAppNodeKind::Int as u8 => parse_vdf_app_node_int(input),
+        k if k == VDFValue::Object as u8 => parse_vdf_app_node_simple(input),
+        k if k == VDFValue::Str as u8 => parse_vdf_app_node_str(input),
+        k if k == VDFValue::Int as u8 => parse_vdf_app_node_int(input),
         _ => Err(ParseError("Unrecognized VDF app node kind")),
     }
 }
 
 //TODO: change returns
-fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFAppNode> {
+fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFValue> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, children) = parse_vdf_app_nodes(input)?;
+    let mut output: VDFAppNode = HashMap::new();
+    output.extend(children);
+
     Ok((
         input,
-        VDFAppNode::Simple {
-            name: name.to_string_lossy().to_string(),
-            children: children,
-        },
+        VDFValue::Object(output) 
     ))
 }
 
 //TODO: change returns
-fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFAppNode> {
+fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFValue> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_vdf_str(input)?;
+    // let mut output: VDFAppNode = HashMap::new();
+    // output.insert(name.to_string_lossy().to_string(), VDFValue::Str(value.to_string_lossy().to_string()));
     Ok((
         input,
-        VDFAppNode::Str {
-            name: name.to_string_lossy().to_string(),
-            value: value.to_string_lossy().to_string(),
-        },
+        VDFValue::Str(value.to_string_lossy().to_string())
     ))
 }
 //TODO: change returns
-fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<VDFAppNode> {
+fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<VDFValue> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_u32le(input)?;
     Ok((
         input,
-        VDFAppNode::Int {
-            name: name.to_string_lossy().to_string(),
-            value: value,
-        },
+        VDFValue::Int (value),
     ))
 }
 
