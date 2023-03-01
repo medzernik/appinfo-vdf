@@ -126,9 +126,9 @@ fn parse_vdf_app_node(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, kind) = parse_take_n(input, 1)?;
 
     match kind[0] {
-        k if k == VDFValue::Object as u8 => parse_vdf_app_node_simple(input),
-        k if k == VDFValue::Str as u8 => parse_vdf_app_node_str(input),
-        k if k == VDFValue::Int as u8 => parse_vdf_app_node_int(input),
+        k if k == VDFAppNodeKind::Simple as u8 => parse_vdf_app_node_simple(input),
+        k if k == VDFAppNodeKind::Str as u8 => parse_vdf_app_node_str(input),
+        k if k == VDFAppNodeKind::Int as u8 => parse_vdf_app_node_int(input),
         _ => Err(ParseError("Unrecognized VDF app node kind")),
     }
 }
@@ -137,8 +137,6 @@ fn parse_vdf_app_node(input: &[u8]) -> ParseResult<(String, VDFValue)> {
 fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, children) = parse_vdf_app_nodes(input)?;
-    // let mut output: VDFAppNode = HashMap::new();
-    // output.extend(children);
 
     Ok((
         input,
