@@ -110,8 +110,7 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<VDFAppNode> {
             break;
         } else if let Ok((input, node)) = parse_vdf_app_node(input2) {
             //TODO: hashmap.push
-
-            children.insert(String::from_utf8(input.to_vec()).unwrap(), node);
+            children.extend(node);
             input2 = input;
         } else {
             break;
@@ -122,7 +121,7 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<VDFAppNode> {
 }
 
 //TODO: change returns
-fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFValue> {
+fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, kind) = parse_take_n(input, 1)?;
 
     match kind[0] {
@@ -134,7 +133,7 @@ fn parse_vdf_app_node(input: &[u8]) -> ParseResult<VDFValue> {
 }
 
 //TODO: change returns
-fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFValue> {
+fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, children) = parse_vdf_app_nodes(input)?;
     let mut output: VDFAppNode = HashMap::new();
@@ -142,28 +141,30 @@ fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<VDFValue> {
 
     Ok((
         input,
-        VDFValue::Object(output) 
+        output
     ))
 }
 
 //TODO: change returns
-fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFValue> {
+fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_vdf_str(input)?;
-    // let mut output: VDFAppNode = HashMap::new();
-    // output.insert(name.to_string_lossy().to_string(), VDFValue::Str(value.to_string_lossy().to_string()));
+    let mut output: VDFAppNode = HashMap::new();
+    output.insert(name.to_string_lossy().to_string(), VDFValue::Str(value.to_string_lossy().to_string()));
     Ok((
         input,
-        VDFValue::Str(value.to_string_lossy().to_string())
+        output
     ))
 }
 //TODO: change returns
-fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<VDFValue> {
+fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<VDFAppNode> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_u32le(input)?;
+    let mut output: VDFAppNode = HashMap::new();
+    output.insert(name.to_string_lossy().to_string(), VDFValue::Int(value));
     Ok((
         input,
-        VDFValue::Int (value),
+        output
     ))
 }
 
