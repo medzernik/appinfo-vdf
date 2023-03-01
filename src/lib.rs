@@ -4,11 +4,11 @@ use std::env;
 use std::fs::File;
 use std::io;
 use std::io::Read;
-use vdf::printer::print;
-use vdf::printer::print_output;
+// use vdf::printer::print;
+// use vdf::printer::print_output;
 use vdf::reader::read;
-use vdf::updater::update;
-use vdf::writer::write;
+// use vdf::updater::update;
+// use vdf::writer::write;
 pub use vdf::VDF;
 
 // fn main() -> io::Result<()> {
@@ -56,13 +56,13 @@ pub fn read_file(path: &str) -> io::Result<VDF> {
     Ok(vdf)
 }
 
-pub fn write_file(path: &str, vdf: &VDF) -> io::Result<()> {
-    let mut file = File::create(path)?;
-    write(&mut file, &vdf)?;
-    Ok(())
-}
+// pub fn write_file(path: &str, vdf: &VDF) -> io::Result<()> {
+//     let mut file = File::create(path)?;
+//     write(&mut file, &vdf)?;
+//     Ok(())
+// }
 
-pub fn print_file(path: &str) -> String {
-    let vdf = read_file(path).unwrap();
-    print_output(&vdf)
-}
+// pub fn print_file(path: &str) -> String {
+//     let vdf = read_file(path).unwrap();
+//     print_output(&vdf)
+// }

@@ -4,8 +4,8 @@ use std::collections::HashMap;
 
 pub mod printer;
 pub mod reader;
-pub mod updater;
-pub mod writer;
+// pub mod updater;
+// pub mod writer;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct VDF {
