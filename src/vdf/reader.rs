@@ -94,7 +94,7 @@ fn parse_vdf_app_section(input: &[u8]) -> ParseResult<VDFAppSection> {
             sha1: sha1.try_into().unwrap(),
             change_number: change_number,
             binary_hash: binary_hash.try_into().unwrap(),
-            nodes: vec![nodes],
+            nodes: nodes,
         },
     ))
 }

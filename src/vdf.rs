@@ -29,7 +29,7 @@ pub struct VDFAppSection {
     pub sha1: [u8; 20],
     pub change_number: u32,
     pub binary_hash: [u8; 20],
-    pub nodes: Vec<VDFAppNode>,
+    pub nodes: VDFAppNode,
 }
 
 // #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
