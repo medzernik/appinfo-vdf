@@ -49,6 +49,7 @@ pub struct VDFAppSection {
 // }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "type")]
 pub enum VDFValue{
     Object(VDFAppNode),
     Str(String),
