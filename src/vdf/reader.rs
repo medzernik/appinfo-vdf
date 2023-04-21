@@ -177,6 +177,7 @@ fn parse_magic(input: &[u8], magic: u32) -> ParseResult<u32> {
     if value == magic {
         Ok((input, value))
     } else {
+        println!("Invalid magic number: found {:x} != wanted {:x}", value, magic);
         Err(ParseError("Invalid magic number"))
     }
 }
