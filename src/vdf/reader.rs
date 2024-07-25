@@ -24,25 +24,15 @@ type ParseResult<'a, 'b, T> = Result<(&'a [u8], T), ParseError<'b>>;
 pub fn read(input: &[u8]) -> ParseResult<VDF> {
     let (input, header) = parse_vdf_header(input)?;
     let (input, sections) = parse_vdf_app_sections(input)?;
-    Ok((
-        input,
-        VDF {
-            header: header,
-            sections: sections,
-        },
-    ))
+    Ok((input, VDF { header, sections }))
 }
 
 fn parse_vdf_header(input: &[u8]) -> ParseResult<VDFHeader> {
     let (input, magic) = parse_magic(input)?;
     let (input, version) = parse_u32le(input)?;
-    Ok((
-        input,
-        VDFHeader {
-            magic: magic,
-            version: version,
-        },
-    ))
+    println!("{magic} {version}");
+
+    Ok((input, VDFHeader { magic, version }))
 }
 
 fn parse_vdf_app_sections(input: &[u8]) -> ParseResult<Vec<VDFAppSection>> {
