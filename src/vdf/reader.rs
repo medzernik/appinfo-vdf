@@ -4,9 +4,6 @@ use std::convert::TryInto;
 use std::ffi::CString;
 use std::io::{self};
 
-const MAGIC: u32 = 0x07564427;
-const MAGIC_2023: u32 = 0x07564428;
-
 pub struct ParseError<'a>(&'a str);
 
 impl<'a> From<&'a str> for ParseError<'a> {
@@ -37,7 +34,7 @@ pub fn read(input: &[u8]) -> ParseResult<VDF> {
 }
 
 fn parse_vdf_header(input: &[u8]) -> ParseResult<VDFHeader> {
-    let (input, magic) = parse_magic(input, MAGIC).unwrap_or(parse_magic(input, MAGIC_2023)?);
+    let (input, magic) = parse_magic(input)?;
     let (input, version) = parse_u32le(input)?;
     Ok((
         input,
@@ -177,17 +174,9 @@ fn parse_vdf_str(input: &[u8]) -> ParseResult<CString> {
     Ok((&input[1..], string))
 }
 
-fn parse_magic(input: &[u8], magic: u32) -> ParseResult<u32> {
+fn parse_magic(input: &[u8]) -> ParseResult<u32> {
     let (input, value) = parse_u32le(input)?;
-    if value == magic {
-        Ok((input, value))
-    } else {
-        println!(
-            "Invalid magic number: found {:x} != wanted {:x}",
-            value, magic
-        );
-        Err(ParseError("Invalid magic number"))
-    }
+    Ok((input, value))
 }
 
 fn parse_u32le(input: &[u8]) -> ParseResult<u32> {
