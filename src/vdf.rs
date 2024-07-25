@@ -26,22 +26,6 @@ pub struct VDFAppSection {
     pub nodes: VDFAppNode,
 }
 
-// #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-// pub enum VDFAppNode {
-//     Simple {
-//         name: String,
-//         children: Vec<VDFAppNode>,
-//     },
-//     Str {
-//         name: String,
-//         value: String,
-//     },
-//     Int {
-//         name: String,
-//         value: u32,
-//     },
-// }
-
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
 pub enum VDFValue {
