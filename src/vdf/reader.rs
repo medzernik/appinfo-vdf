@@ -82,15 +82,15 @@ fn parse_vdf_app_section(input: &[u8]) -> ParseResult<VDFAppSection> {
     Ok((
         input,
         VDFAppSection {
-            app_id: app_id,
-            data_size: data_size,
-            info_state: info_state,
-            last_updated: last_updated,
-            pics_token: pics_token,
+            app_id,
+            data_size,
+            info_state,
+            last_updated,
+            pics_token,
             sha1: sha1.try_into().unwrap(),
-            change_number: change_number,
+            change_number,
             binary_hash: binary_hash.try_into().unwrap(),
-            nodes: nodes,
+            nodes,
         },
     ))
 }
