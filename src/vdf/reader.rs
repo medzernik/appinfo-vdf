@@ -1,8 +1,11 @@
+use crate::vdf::{MAGIC, MAGIC28, MAGIC29};
+
 use super::{VDFAppNode, VDFAppNodeKind, VDFAppSection, VDFHeader, VDFValue, VDF};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::io::{self};
+use std::ops::{Shl, Shr};
 
 pub struct ParseError<'a>(&'a str);
 
@@ -29,10 +32,31 @@ pub fn read(input: &[u8]) -> ParseResult<VDF> {
 
 fn parse_vdf_header(input: &[u8]) -> ParseResult<VDFHeader> {
     let (input, magic) = parse_magic(input)?;
-    let (input, version) = parse_u32le(input)?;
-    println!("{magic} {version}");
+    let (input, offset) = parse_offset(input)?;
 
-    Ok((input, VDFHeader { magic, version }))
+    match magic {
+        MAGIC29 => {
+            println!("Using Magic 29");
+        }
+        MAGIC28 => {
+            println!("Using Magic 28");
+        }
+        MAGIC => {
+            println!("Using Magic OG");
+        }
+        _ => return Err(ParseError("Invalid magic number: {magic}")),
+    }
+
+    let (input, version) = parse_u32le(input)?;
+
+    Ok((
+        input,
+        VDFHeader {
+            magic,
+            version,
+            offset,
+        },
+    ))
 }
 
 fn parse_vdf_app_sections(input: &[u8]) -> ParseResult<Vec<VDFAppSection>> {
@@ -107,7 +131,6 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<VDFAppNode> {
     result
 }
 
-//TODO: change returns
 fn parse_vdf_app_node(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, kind) = parse_take_n(input, 1)?;
 
@@ -119,7 +142,6 @@ fn parse_vdf_app_node(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     }
 }
 
-//TODO: change returns
 fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, children) = parse_vdf_app_nodes(input)?;
@@ -133,7 +155,6 @@ fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     ))
 }
 
-//TODO: change returns
 fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_vdf_str(input)?;
@@ -145,7 +166,7 @@ fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<(String, VDFValue)> {
         ),
     ))
 }
-//TODO: change returns
+
 fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_u32le(input)?;
@@ -169,6 +190,20 @@ fn parse_magic(input: &[u8]) -> ParseResult<u32> {
     Ok((input, value))
 }
 
+fn parse_offset(input: &[u8]) -> ParseResult<i64> {
+    let (input, offset) = parse_i64le(input)?;
+    let (input, _) = parse_u32le(input)?;
+    let (input, _) = parse_u32le(input)?;
+    let (input, _) = parse_u32le(input)?;
+    let (input, _) = parse_u32le(input)?;
+    let (input, _) = parse_u32le(input)?;
+
+    // for i in input[offset as usize..].iter() {
+    //     (input, _) = parse_vdf_str(input)?;
+    // }
+
+    Ok((input, offset))
+}
 fn parse_u32le(input: &[u8]) -> ParseResult<u32> {
     let err_msg = "Couldn't parse u32le";
     let size = std::mem::size_of::<u32>();
@@ -185,6 +220,16 @@ fn parse_u64le(input: &[u8]) -> ParseResult<u64> {
     let (input, int_bytes) = parse_take_n(input, size).map_err(|_| err_msg)?;
     match int_bytes.try_into() {
         Ok(bytes) => Ok((input, u64::from_le_bytes(bytes))),
+        Err(_) => Err(ParseError(err_msg)),
+    }
+}
+
+fn parse_i64le(input: &[u8]) -> ParseResult<i64> {
+    let err_msg = "Couldn't parse i64le";
+    let size = std::mem::size_of::<i64>();
+    let (input, int_bytes) = parse_take_n(input, size).map_err(|_| err_msg)?;
+    match int_bytes.try_into() {
+        Ok(bytes) => Ok((input, i64::from_le_bytes(bytes))),
         Err(_) => Err(ParseError(err_msg)),
     }
 }

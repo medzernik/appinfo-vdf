@@ -11,6 +11,7 @@ pub struct VDF {
 pub struct VDFHeader {
     pub magic: u32,
     pub version: u32,
+    pub offset: i64,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -44,6 +45,6 @@ pub enum VDFAppNodeKind {
 }
 
 // Constants where all the different MAGIC numbers go
-pub const MAGIC29: u32 = 0x07_56_44_29;
-pub const MAGIC28: u32 = 0x07_56_44_28;
-pub const MAGIC: u32 = 0x07_56_44_27;
+pub const MAGIC: u32 = 0x07564427;
+pub const MAGIC28: u32 = 0x07564428;
+pub const MAGIC29: u32 = 0x07564429;
