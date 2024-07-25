@@ -42,3 +42,8 @@ pub enum VDFAppNodeKind {
     Int = 2,
     End = 8,
 }
+
+// Constants where all the different MAGIC numbers go
+pub const MAGIC29: u32 = 0x07_56_44_29;
+pub const MAGIC28: u32 = 0x07_56_44_28;
+pub const MAGIC: u32 = 0x07_56_44_27;
