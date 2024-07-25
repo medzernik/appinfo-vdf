@@ -1,9 +1,8 @@
-use super::{VDFAppNode, VDFAppNodeKind, VDFAppSection, VDFHeader, VDF, VDFValue};
+use super::{VDFAppNode, VDFAppNodeKind, VDFAppSection, VDFHeader, VDFValue, VDF};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::ffi::CString;
-use std::io::{self, Read};
-use std::str::FromStr;
+use std::io::{self};
 
 const MAGIC: u32 = 0x07564427;
 const MAGIC_2023: u32 = 0x07564428;
@@ -111,7 +110,7 @@ fn parse_vdf_app_nodes(input: &[u8]) -> ParseResult<VDFAppNode> {
         } else if let Ok((input, node)) = parse_vdf_app_node(input2) {
             //TODO: hashmap.push
             children.insert(node.0, node.1);
-            
+
             input2 = input;
         } else {
             break;
@@ -140,27 +139,33 @@ fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<(String, VDFValue)> {
 
     Ok((
         input,
-        (name.to_string_lossy().to_string(),VDFValue::Object(children))
+        (
+            name.to_string_lossy().to_string(),
+            VDFValue::Object(children),
+        ),
     ))
 }
 
 //TODO: change returns
-fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<(String,VDFValue)> {
+fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_vdf_str(input)?;
     Ok((
         input,
-        (name.to_string_lossy().to_string(), VDFValue::Str(value.to_string_lossy().to_string()))
+        (
+            name.to_string_lossy().to_string(),
+            VDFValue::Str(value.to_string_lossy().to_string()),
+        ),
     ))
 }
 //TODO: change returns
-fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<(String,VDFValue)> {
+fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     let (input, name) = parse_vdf_str(input)?;
     let (input, value) = parse_u32le(input)?;
-   
+
     Ok((
         input,
-        (name.to_string_lossy().to_string(), VDFValue::Int(value))
+        (name.to_string_lossy().to_string(), VDFValue::Int(value)),
     ))
 }
 
@@ -177,7 +182,10 @@ fn parse_magic(input: &[u8], magic: u32) -> ParseResult<u32> {
     if value == magic {
         Ok((input, value))
     } else {
-        println!("Invalid magic number: found {:x} != wanted {:x}", value, magic);
+        println!(
+            "Invalid magic number: found {:x} != wanted {:x}",
+            value, magic
+        );
         Err(ParseError("Invalid magic number"))
     }
 }

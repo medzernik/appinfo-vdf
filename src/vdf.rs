@@ -1,11 +1,5 @@
-// use std::ffi::CString;
-
 use std::collections::HashMap;
-
-pub mod printer;
 pub mod reader;
-// pub mod updater;
-// pub mod writer;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct VDF {
@@ -50,10 +44,10 @@ pub struct VDFAppSection {
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
-pub enum VDFValue{
+pub enum VDFValue {
     Object(VDFAppNode),
     Str(String),
-    Int(u32)
+    Int(u32),
 }
 
 pub type VDFAppNode = HashMap<String, VDFValue>;
@@ -64,5 +58,3 @@ pub enum VDFAppNodeKind {
     Int = 2,
     End = 8,
 }
-
-
