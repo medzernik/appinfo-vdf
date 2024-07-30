@@ -182,14 +182,15 @@ fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     ))
 }
 
-fn parse_vdf_str(input: &[u8], offset: i64) -> ParseResult<CString> {
+fn parse_vdf_str(input: &[u8], offset: usize) -> ParseResult<CString> {
     let err_msg = "Couldn't parse VDF string";
     let pos = input
         .iter()
-        .skip(offset as usize)
+        .skip(offset)
         .position(|b| *b == b'\0')
         .ok_or(err_msg)?;
-    let (input, bytes) = parse_take_n(input, pos)?;
+
+    let (input, bytes) = parse_take_n(&input[offset..], pos)?;
     let string = unsafe { CString::from_vec_unchecked(bytes.to_vec()) };
     Ok((&input[1..], string))
 }
@@ -207,8 +208,9 @@ fn parse_offset(input: &[u8]) -> ParseResult<(i64, Vec<String>)> {
     let prev_offset = offset;
     offset = string_offset;
     let (input, string_count) = parse_i32le(input)?;
+    println!("STRING OFFSET: {string_offset}");
     for _ in 0..string_count {
-        let (input, str) = parse_vdf_str(input, offset)?;
+        let (input, str) = parse_vdf_str(input, offset as usize)?;
         string_table.push(str.to_string_lossy().to_string());
     }
     offset = prev_offset;
