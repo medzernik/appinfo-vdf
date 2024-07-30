@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::io::{self};
-use std::ops::{Shl, Shr};
 
 pub struct ParseError<'a>(&'a str);
 
@@ -26,13 +25,13 @@ type ParseResult<'a, 'b, T> = Result<(&'a [u8], T), ParseError<'b>>;
 
 pub fn read(input: &[u8]) -> ParseResult<VDF> {
     let (input, header) = parse_vdf_header(input)?;
-    let (input, sections) = parse_vdf_app_sections(input)?;
+    let (input, sections) = parse_vdf_app_sections(input, header.offset)?;
     Ok((input, VDF { header, sections }))
 }
 
 fn parse_vdf_header(input: &[u8]) -> ParseResult<VDFHeader> {
-    let (input, magic) = parse_magic(input)?;
-    let (input, offset) = parse_offset(input)?;
+    let (input, magic) = parse_u32le(input)?;
+    let (input, version) = parse_u32le(input)?;
 
     match magic {
         MAGIC29 => {
@@ -46,8 +45,10 @@ fn parse_vdf_header(input: &[u8]) -> ParseResult<VDFHeader> {
         }
         _ => return Err(ParseError("Invalid magic number: {magic}")),
     }
+    println!("DEBUG: version {version}");
 
-    let (input, version) = parse_u32le(input)?;
+    let (input, (offset, string_table)) = parse_offset(input)?;
+    println!("TABLLES:\n {offset}\n {string_table:?}");
 
     Ok((
         input,
@@ -59,19 +60,23 @@ fn parse_vdf_header(input: &[u8]) -> ParseResult<VDFHeader> {
     ))
 }
 
-fn parse_vdf_app_sections(input: &[u8]) -> ParseResult<Vec<VDFAppSection>> {
+fn parse_vdf_app_sections(input: &[u8], offset: i64) -> ParseResult<Vec<VDFAppSection>> {
     let mut sections = Vec::new();
+    let mut vdf_string_table: Vec<String> = Vec::new();
     let mut input2 = input;
     let mut result = Err(ParseError("Couldn't parse VDF app section"));
 
     loop {
         if matches_bytes(input2, &[0, 0, 0, 0]) {
             result = Ok((input2, sections));
+            println!("DEBUG: OK, 0000, EMPTY");
             break;
         } else if let Ok((input, section)) = parse_vdf_app_section(input2) {
             sections.push(section);
+            println!("DEBUG: SECTION PUSHED!");
             input2 = input;
         } else {
+            println!("DEBUG: NO SECTION FOUND");
             break;
         }
     }
@@ -143,7 +148,7 @@ fn parse_vdf_app_node(input: &[u8]) -> ParseResult<(String, VDFValue)> {
 }
 
 fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<(String, VDFValue)> {
-    let (input, name) = parse_vdf_str(input)?;
+    let (input, name) = parse_vdf_str(input, 0)?;
     let (input, children) = parse_vdf_app_nodes(input)?;
 
     Ok((
@@ -156,8 +161,8 @@ fn parse_vdf_app_node_simple(input: &[u8]) -> ParseResult<(String, VDFValue)> {
 }
 
 fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<(String, VDFValue)> {
-    let (input, name) = parse_vdf_str(input)?;
-    let (input, value) = parse_vdf_str(input)?;
+    let (input, name) = parse_vdf_str(input, 0)?;
+    let (input, value) = parse_vdf_str(input, 0)?;
     Ok((
         input,
         (
@@ -168,7 +173,7 @@ fn parse_vdf_app_node_str(input: &[u8]) -> ParseResult<(String, VDFValue)> {
 }
 
 fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<(String, VDFValue)> {
-    let (input, name) = parse_vdf_str(input)?;
+    let (input, name) = parse_vdf_str(input, 0)?;
     let (input, value) = parse_u32le(input)?;
 
     Ok((
@@ -177,9 +182,13 @@ fn parse_vdf_app_node_int(input: &[u8]) -> ParseResult<(String, VDFValue)> {
     ))
 }
 
-fn parse_vdf_str(input: &[u8]) -> ParseResult<CString> {
+fn parse_vdf_str(input: &[u8], offset: i64) -> ParseResult<CString> {
     let err_msg = "Couldn't parse VDF string";
-    let pos = input.iter().position(|b| *b == b'\0').ok_or(err_msg)?;
+    let pos = input
+        .iter()
+        .skip(offset as usize)
+        .position(|b| *b == b'\0')
+        .ok_or(err_msg)?;
     let (input, bytes) = parse_take_n(input, pos)?;
     let string = unsafe { CString::from_vec_unchecked(bytes.to_vec()) };
     Ok((&input[1..], string))
@@ -190,26 +199,37 @@ fn parse_magic(input: &[u8]) -> ParseResult<u32> {
     Ok((input, value))
 }
 
-fn parse_offset(input: &[u8]) -> ParseResult<i64> {
-    let (input, offset) = parse_i64le(input)?;
-    let (input, _) = parse_u32le(input)?;
-    let (input, _) = parse_u32le(input)?;
-    let (input, _) = parse_u32le(input)?;
-    let (input, _) = parse_u32le(input)?;
-    let (input, _) = parse_u32le(input)?;
+fn parse_offset(input: &[u8]) -> ParseResult<(i64, Vec<String>)> {
+    let (input, string_offset) = parse_i64le(input)?;
+    let mut offset = 0;
+    let mut string_table: Vec<String> = Vec::new();
 
-    // for i in input[offset as usize..].iter() {
-    //     (input, _) = parse_vdf_str(input)?;
-    // }
-
-    Ok((input, offset))
+    let prev_offset = offset;
+    offset = string_offset;
+    let (input, string_count) = parse_i32le(input)?;
+    for _ in 0..string_count {
+        let (input, str) = parse_vdf_str(input, offset)?;
+        string_table.push(str.to_string_lossy().to_string());
+    }
+    offset = prev_offset;
+    Ok((input, (offset, string_table)))
 }
+
 fn parse_u32le(input: &[u8]) -> ParseResult<u32> {
     let err_msg = "Couldn't parse u32le";
     let size = std::mem::size_of::<u32>();
     let (input, int_bytes) = parse_take_n(input, size).map_err(|_| err_msg)?;
     match int_bytes.try_into() {
         Ok(bytes) => Ok((input, u32::from_le_bytes(bytes))),
+        Err(_) => Err(ParseError(err_msg)),
+    }
+}
+fn parse_i32le(input: &[u8]) -> ParseResult<i32> {
+    let err_msg = "Couldn't parse i32le";
+    let size = std::mem::size_of::<i32>();
+    let (input, int_bytes) = parse_take_n(input, size).map_err(|_| err_msg)?;
+    match int_bytes.try_into() {
+        Ok(bytes) => Ok((input, i32::from_le_bytes(bytes))),
         Err(_) => Err(ParseError(err_msg)),
     }
 }
